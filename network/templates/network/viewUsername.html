@@ -1,0 +1,66 @@
+{% extends "network/layout.html" %}
+{% load static %}
+
+{% block script %}
+    <script src="{% static 'network/script.js' %}"></script>
+{% endblock %}
+
+{% block body %}
+    <div class="card text-center">
+      <!-- Shows the profile details -->
+        <div class="card-header">
+          Profile
+        </div>
+        <div class="card-body">
+          <h5 class="card-title">{{userProfile.user.username}}</h5>
+          <p class="card-text">Following: {{followingCount}} </p>
+          <p class="card-text">Followers: {{followersCount}}</p>
+          <p class="card-text">
+            <!-- Shows the posts made by the user of the profile being seen -->
+            <div class="list-group">
+                {% for post in page_obj %}
+                <div class="list-group-item list-group-item-action flex-column align-items-start" id = "post{{post.id}}">
+                  <div class="d-flex w-100 justify-content-between">
+                    <a href = "{% url 'viewUsername' post.user.username %}" class="mb-1">{{post.user.username}}</a>
+                    <small class="text-muted">{{post.timestamp}}</small>
+                  </div>
+                  <div id = "post{{post.id}}details">
+                  <p class="mb-1">{{post.content}}</p>
+                  </div>
+                  <small class="text-primary" id = "post{{post.id}}likes"> {{post.likes.all.count}} Likes</small>
+                  {% if request.user == post.user %}
+                  <br>
+                  <button type="button" class="btn btn-danger btn-sm" id = "edit{{post.id}}" onclick="editPost({{post.id}})">Edit Post</button>
+                  {% endif %}
+                  <button type="button" class="btn btn-dark btn-sm" id = "unlike{{post.id}}" onclick = "unlikePost({{post.id}})" style = "display: {% if request.user in post.likes.all %} block; {%else%} none; {% endif %}">Unlike</button>
+                  <button type="button" class="btn btn-dark btn-sm" id = "like{{post.id}}" onclick = "likePost({{post.id}})" style = "display: {% if request.user in post.likes.all %} none; {%else%} block; {% endif %}" >Like</button>
+            </div>
+                {% endfor %}
+            </div> 
+          </p>
+          <!-- Checks whether the user is different from the profile user being seen.-->
+          {% if user.is_authenticated and user != userProfile.user %}
+          <!-- Checks whether they already follow the profile or not, so they can choose to follow/unfollow -->
+          {% if user in userProfile.followers.all %}
+          <a href="{% url 'unfollow' userProfile.user.username %}" class="btn btn-primary">Unfollow</a>
+          {% else %}
+          <a href="{% url 'follow' userProfile.user.username %}" class="btn btn-primary">Follow</a>
+          {% endif %}
+          {% endif %}
+        </div>
+      </div>
+      <!-- Navigation Bar for pages -->
+      <nav aria-label="Page navigation example">
+        <ul class="pagination">
+          {% if page_obj.has_previous %}
+          <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
+          {% endif %}
+          <span class="current">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+          </span>
+          {% if page_obj.has_next %}
+          <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+          {% endif %}
+        </ul>
+      </nav>
+{% endblock %}

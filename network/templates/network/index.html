@@ -1,0 +1,62 @@
+{% extends "network/layout.html" %}
+{% load static %}
+
+{% block script %}
+    <script src="{% static 'network/script.js' %}"></script>
+{% endblock %}
+
+{% block body %}
+    <h1>All Posts</h1>
+
+    <!-- Allows the user to submit a post if logged in.-->
+    {% if user.is_authenticated %}
+    <div class="border border-dark">
+        <form method="POST" action="{% url 'newPost' %}" class="ml-3 mr-3" >
+            {% csrf_token %}
+            <div class="form-group">
+            <label for="newPost" class="font-weight-bold">New Post</label>
+            <textarea class="form-control" id="newPost" name="newPost" rows="3"></textarea>
+            </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+    </div>
+    {% endif %}
+
+    <!-- Displays all the posts in the index page.-->
+    <div class="list-group">
+        {% for post in page_obj %}
+        <div class="list-group-item list-group-item-action flex-column align-items-start" id = "post{{post.id}}">
+            <div class="d-flex w-100 justify-content-between">
+              <a href = "{% url 'viewUsername' post.user.username %}" class="mb-1">{{post.user.username}}</a>
+              <small class="text-muted">{{post.timestamp}}</small>
+            </div>
+            <div id = "post{{post.id}}details">
+            <p class="mb-1">{{post.content}}</p>
+            </div>
+            <small class="text-primary" id = "post{{post.id}}likes"> {{post.likes.all.count}} Likes</small>
+            {% if request.user == post.user %}
+            <br>
+            <button type="button" class="btn btn-danger btn-sm" id = "edit{{post.id}}" onclick="editPost({{post.id}})">Edit Post</button>
+            {% endif %}
+            <button type="button" class="btn btn-dark btn-sm" id = "unlike{{post.id}}" onclick = "unlikePost({{post.id}})" style = "display: {% if request.user in post.likes.all %} block; {%else%} none; {% endif %}">Unlike</button>
+            <button type="button" class="btn btn-dark btn-sm" id = "like{{post.id}}" onclick = "likePost({{post.id}})" style = "display: {% if request.user in post.likes.all %} none; {%else%} block; {% endif %}" >Like</button>
+      </div>
+        {% endfor %}
+    </div> 
+
+    <!-- Shows the navigation bar for the pages of posts. -->
+    <nav aria-label="Page navigation example">
+        <ul class="pagination">
+          {% if page_obj.has_previous %}
+          <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
+          {% endif %}
+          <span class="current">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+          </span>
+          {% if page_obj.has_next %}
+          <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+          {% endif %}
+        </ul>
+      </nav>
+{% endblock %}
+
